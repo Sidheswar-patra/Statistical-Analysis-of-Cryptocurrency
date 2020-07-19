@@ -1,0 +1,331 @@
+---
+title: "Cryptocurrency Report"
+author: "Sidheswar Patra"
+date: "02/05/2020"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Introduction :
+
+* In 2008, Satoshi Nakamoto proposed a system of currency in which instead of a bank recording every transaction in one central ledger all of the users would record all of the transactions at the same time and as a result, any attempt of fraud would be noticed and can be rejected. No one user, government, or bank can force a fee on a payment or control its flow. The result is a cheaper, quicker, and easier way to transact money even across national borders through this digital system which is called Cryptocurrency.
+
+* A cryptocurrency is a digital or alternative currency intended to act as a means of exchange. It uses cryptography to encrypt and validate transactions, and to regulate the production of new cryptocurrency units.
+
+* Bitcoin is a type of electronic cash, a cryptocurrency that is decentralized and doesn’t require a central bank or single administrator. It is a digital currency that can be sent from one user to others through the peer-to-peer Bitcoin blockchain network without any need for intermediaries. Bitcoin is pseudo-anonymous, everything is open, transparent, and trackable but you still can’t tell who is sending what to whom.
+
+* **Bill Gates**, founder of Microsoft quoted “Bitcoin is exciting because it shows how cheap it can be. Bitcoin is better than currency in that you don’t have to be physically in the same place and, of course, for large transactions, currency can get pretty inconvenient.”
+
+* Ethereum, perhaps the second most valuable cryptocurrency, has recorded the fastest rise ever demonstrated by a digital currency. Its value has risen by at least 2700 percent since May 2016. When it comes to all combined cryptocurrencies, their market cap has soared since mid-2013 by more than 10,000 percent.
+
+* Source - https://cointelegraph.com/bitcoin-for-beginners/what-are-cryptocurrencies 
+
+
+## 2. Rationale :
+
+* In 2017, cryptocurrencies skyrocketed to the next level. Bitcoin smashed the trading charts in December 2017 by rising to $20k and becoming the world's most worthy cryptocurrency. 
+
+* Most of the developed countries have legalised the use of cryptocurrencies and few countries are also working in blockchain solutions to stay ahead of others. In the future, companies will begin paying for their services using Cryptocurrencies. Through this, companies could remove the middleman from various processes. And it would slash costs and make the offerings affordable for end-users.
+
+* John McAfee(Founder of McAfee software company) has estimated that Bitcoin would reach 1 million USD by the end of 2020. He believes that the most reliable currencies are crypto. When the Bitcoin takes over the global economy, the market will rise and the conventional dollars are no longer needed. Snapchat's owner, Jeremy Liew, and Blockchain's co-founder Peter Smith predicts the price will hit  500,000 USD by the year 2030.
+
+* Bitcoin will serve as Remittances for a lot of people in the future. 
+
+* Lack of awareness will make people buy Bitcoins as a more Gold-like mode of investment. 
+
+* By 2030 half of the world will march towards non-cash transactions through mobile transactions. 
+
+* Fiat currencies will be replaced by Cryptocurrencies.
+
+* Last but not least, there is a spike in crypto-currency ventures. This would result in mass acceptance, as their numbers increase each day. When widely adopted, they can be the next iteration in all sectors of the technology. With that matter, we can expect Cryptocurrencies to be converted to currencies quite soon.
+
+
+## 3. Purpose of Analysis & Research Question :
+
+* Use of Cryptocurrency is legal in many countries and its demand is increasing exponentially over time, so to analyse their growth since its inception. 
+
+* How are the top cryptocurrency correlated with each other in terms of their rate, volume, and market capitalization per day respectively?
+
+* Which currencies are the most volatile and how are they performing in comparison with top cryptocurrency based on Market Capitalisation and Volume?
+
+* Can we predict the price of the top-performing cryptocurrency through the statistical approach? How accurate would it be and is there a scope of improvement? 
+
+* The analysis would help in deciding while investing in cryptocurrencies.
+
+
+## 4. Dataset Information : 
+
+The data set used to create the dashboard can be found at:   
+* https://www.kaggle.com/philmohun/cryptocurrency-financial-data/kernels?sortBy=hotness&group=everyone&pageSize=20&datasetId=8629&language=R 
+
+* The dataset is a csv file containing consolidated finanical information for the top 12 cryptocurrencies by marketcap. Pulled from CoinMarketCap.com. 
+
+**Attributes & its Description**:
+  
+* **Currency** - Name of currency.
+* **Date** - refers to the calendar date for the particular row.
+* **Open** - is what the price was at the beginning of the day.
+* **High** - Highest recorded trading price of the day.
+* **Low** - Lowest recorded trading price of the day.
+* **Close** - Close is what the price was at the end of the day.
+* **Volume** - Volume represents the monetary value of the currency traded in a 24 hour period, denoted in USD.
+* **Market Cap** - Market cap is circulating supply 'x' price of the coin. For example, if you have 100 coins that are worth 10 USD each, then your market cap is 1,000 USD.
+
+
+## 5. Data  Preparation and Visualisation :
+
+#Importing the required libraries to carry out the analysis.
+```{r}
+library(ggplot2)
+library(corrplot)
+library(dplyr)
+library(anytime)
+library(xts)
+library(hts)
+library(forecast)
+library(plotly)
+library(treemap)
+```
+
+# Reading data. 
+```{r include=FALSE}
+data <- read.csv('Crypto_Data.csv')
+```
+
+# Checking the structure of the Data.
+```{r}
+str(data)
+```
+
+# Converting the Date field into usable format.
+```{r}
+data$Date <- as.Date(data$Date , format = "%d-%m-%Y")
+```
+
+# Checking Closing rate of cryptocurrencies wrt Market Capitalization.
+```{r}
+b_Rs <- ggplot(data, aes(x = Market.Cap , y = Close, color = Currency)) + geom_point() 
+b_Rs <- b_Rs + xlab("Market Capitalization") + ylab("Closing Price") + ggtitle("Cryptocurrency Growth")
+b_Rs
+```
+
+* We can see that Bitcoin has got tremendous growth in comparison to all other cryptocurrencies. 
+
+# ** Cryptocurrency size in terms of Market Capitalization **
+```{r}
+tm <- treemap(data, index = "Currency",
+              vSize = "Market.Cap",
+              vColor = "Market.Cap",
+              type = "value" )
+
+```
+
+
+# ** Cryptocurrency size in terms of  Volume**
+```{r}
+tm1 <- treemap(data, index = "Currency",
+              vSize = "Volume", vColor = "Volume",
+              type = "value")
+```
+
+* Since Bitcoin is the market leader in terms of cryptocurrency, let's take the entire history data of Bitcoin and perform Multiple Linear Regression to predict its future price.
+
+* Please refer to the interactive visualisation for a more detailed comparison between these cryptocurrencies on various attributes.
+
+# Creating a dataframe for all data of Bitcoin cryptocurrency only.
+```{r}
+bitcoin <- subset(data, Currency=="bitcoin")
+```
+
+
+# Checking top rows of Bitcoin data.
+```{r}
+head(bitcoin)
+```
+
+# Checking the summary of data for Bitcoin cryptocurrency.
+```{r}
+summary(bitcoin)
+```
+
+
+# Checking the correlation between fields.
+```{r}
+cor <- cor(bitcoin[,3:8])
+corrplot(cor, method = "pie")
+```
+
+* We are splitting the dataset into two-part, One is the training data set ranging till 1st November 2019, and a test data set from 2nd November 2019 onwards. 
+
+# Creating Training data to carry out multiple linear regression.
+```{r}
+training_data <-  bitcoin %>%
+                  select(Date, Open, High, Low, Close, Volume, Market.Cap) %>%
+                  filter(Date < as.Date("2019-11-01"))
+```
+
+# Checking the summary of Training data.
+```{r}
+summary(training_data)
+```
+
+* We can see how tremendous is the growth of Bitcoin from 2013 till the end of 2019 as its valuation has peaked to 19497 USD for one bitcoin.
+
+* Also there is huge growth in the volume of bitcoin transacted per day and total Market Capitalisation.
+
+# Creating Testing data to evaluate model.
+```{r}
+testing_data <-  bitcoin %>%
+                  select(Date, Open, High, Low, Close, Volume, Market.Cap) %>%
+                  filter(Date >= as.Date("2019-11-01"))
+```
+
+# Checking the structure of Testing data.
+```{r}
+str(testing_data)
+```
+
+
+
+# Converting data to time series.
+```{r}
+Train = xts(training_data[, -1], order.by=as.POSIXct(training_data$Date)) 
+tsr <- ts(Train[,4], frequency = 365.25,start = c(2013,4,28))
+plot(Train$Close,type='l',lwd = 1.5,col='red', ylim = c(0,25000), main = "Bitcoin Closing Price in USD")
+```
+
+* The date dimension is removed from the training data set before developing the forecasting models, and the bitcoin's closing price is converted to a time series. We can see from 2017 onwards the price of bitcoin has increased tremendously however there is also significant fluctuation in its price.
+
+* We need to observe the trends and seasonality involved within Bitcoin's closing price. We will identify which forecasting model to use, based on seasonal trends.
+
+# Checking for trends and seasonality.
+```{r}
+dects <- decompose(tsr) 
+plot(dects)
+```
+
+It can be seen that, over the years, there has been a consistent seasonal variability in the closing price of bitcoins and the pattern has been almost constant until the end of 2016. Hence, we can use multiple linear regression model to forecast the Bitcoin's closing price.
+
+# Checking the summary of "Train" data
+```{r}
+summary(Train)
+```
+
+# Plotting the training data.
+```{r}
+plot(training_data)
+```
+
+* As the values of the attributes are too large, lets use log function to normalise the data and then check the correlation again to get more better visualisation.
+
+# Using log() to normalize the data and Converting it into dataframe to use in model
+```{r}
+bitcoin_df  <- data.frame(Close=Train$Close,
+                         Open=log(Train$Open+1),
+                         High=log(Train$High),
+                         Low=log(Train$Low+1),
+                         Volume=log(Train$Volume+1),
+                         Market.Cap=log(Train$Market.Cap+1))
+
+```
+
+
+# Checking correlaton between "Open" and "Close".
+```{r}
+plot(bitcoin_df$Open, bitcoin_df$Close)
+```
+
+# Checking correlation between all the variables.
+```{r}
+plot(bitcoin_df)
+```
+* We can use multiple linear regression as the values are continuous and have a line in most of the graphs.
+
+* we can see that "Open", "High", "Low" and "Market.Cap" attributes are similarly correlated with "Close"(which is our dependant variable), this is good as it means that all these independent variables are reasonable predictors for "Close" and would give us similar results if we use any of them in a linear regression function.
+
+
+# Introduction to multiple linear regression:
+
+The general form of a multiple regression is "Yi=β0+β1x1,i+β2x2,i+⋯+βkxk,i+ei", where "Yi" is the variable to be forecast(Dependent Variable) and "x1,i,…,xk,i" are the k predictors(Independent variables). In Linear regression, each of the predictor variables must be numerical and the "β1, ... ,βk" coefficients calculate the effect of each predictor, taking into consideration the effect of all other predictors of the model. 
+Thus the coefficients determine the marginal effects of the variables in the predictor.
+
+# Multiple Linear Regression.
+```{r}
+fit <- step(lm(Close ~ Open + High + Low + Volume + Market.Cap, data=bitcoin_df))
+```
+* We specify "Close" is predicted by "Open + High + Low + Volume + Market.Cap" by using the tilde character between them and by default our model adds the terms for the y-intercept and the slope, our model then uses least-squares to find the values for the y-intercept and the slope that minimize the squared residuals from the line once we have run the linear model function and save the output in a variable called "fit".
+
+# Checking the summary of the Multiple regression.
+```{r}
+summary(fit)
+```
+
+* The First line shows us the original call to the linear model's function. 
+
+* Second line is a summary of the residuals those are the distance from the data to the fitted line, they are symmetrically distributed.
+
+* This next section tells us about the least squares estimates for the fitted line, we can see the intercept value, slope value, standard error values of the estimates and the T value. These P values test whether the estimates for the intercept and the slope are equal to 0 or not if they're equal to 0 that means they don't have much use in the model, lastly these are the P values for the estimated parameters. We can see that "High" and "Market.Cap" has big p-values which show us how significant these attributes are for closing price prediction.
+
+* The intercept value is 23453.94, which means that the average USD market price over major Bitcoin exchanges is estimated to be 23453.94$ while the total USD value of the supply in circulation is 0.
+
+* The p-value in coefficients means that using all the parameters isn't significantly better than using only one of them alone to predict "Close" as the Pr(>|t|) value is high. However, the "***" sign also depicts us that using "High", "Volume" and "Market.Cap" is significantly better than using all these together.
+
+* The next line shows the R-squared and adjusted R-squared values, it means that all the parameters can explain 82% of the variation in Closing price, this is good since the adjusted R squared is the r-squared scaled by the number of parameters in the model. So, our model performed well in predicting bitcoin's closing price.
+
+# Checking the model accuracy through testing data.
+```{r}
+p1 <- predict(fit,testing_data)
+error1 <- p1 - testing_data[["Close"]]
+RMSE <- sqrt(mean(error1^2))
+RMSE
+```
+#RMSE=3.49
+
+* RMSE is the square root of the variance of residual values. It shows the model's absolute fit to the data – how close the observed data points are to predicted values of the model. The lower the score we get for RMSE is better as it is the measure of the closeness of predicted values to actual ones. We have got RMSE as 3.49 which is good based on our data and we considered the RMSE parameter to check model accuracy as it is best for the prediction problems.
+
+
+## 6. Conclusion :
+
+* We got 82% accuracy in Bitcoin price prediction which can significantly help in taking decisions before investing in Bitcoin. So we can use a similar model with other cryptocurrency data to predict their growth.
+
+* The Multiple Linear regression showed us that the average USD market price over major Bitcoin exchanges is estimated to be 23453.94$ while the total USD value of the supply in circulation is 0 considering the Lowest, Highest and opening price of Bitcoin along with its Volume of transactions per day and total Market Capitalisation.
+
+* We saw that the Highest price of the day and Market Capitalisation is more correlated to the Closing Price of Bitcoin.
+
+* We saw that overall fluctuation of price in seasonality graph of Bitcoin time series from 2013 to 2019 continuous and similar however the Trend graph has tremendous increase from 2017 onwards which shows us that we need additional data of various attributes like market volatility, countries economy, companies business, etc to predict the rate of Bitcoin more accurately.
+
+* Through the EDA we saw that the overall Market Capitalisation is highest for "Bitcoin" followed by "Etherium" which is not very old in the market and still showing great progress followed by "xrp" however the top 3 contributors to Volume of cryptocurrencies transacted per day is 
+"Bitcoin" followed by "Tether" and then "Etherium". So, there is a healthy competition between cryptocurrencies and the future is very much inclined towards the use of various cryptocurrencies.
+
+
+## 7. Limitation of Study :
+
+* Since the correlation between Closing Price (dependant variable) and Open, High, Low, Volume, Market.Cap (independent variables) are not exactly in a straight line as we saw in the correlation graph, so the r square value is not that good for forecasting problems such as Bitcoin price prediction as it requires high accuracy and precision.
+
+* A lot of other factors such as seasonal, countries economy, companies business, market volatility also contributes to the fluctuations of Bitcoin and other cryptocurrency prices. Data related to these attributes can enhance the analysis furthermore.
+
+* These days social media platforms such as Twitter, Facebook, etc also influence people's thinking and sentiment analysis of these data can also enhance the crypto price forecast.
+
+
+## 8. Future Scope :
+
+* Even though the price is really volatile now due to the Bitcoin bubble, this algorithm might be a good algorithm to use for its price prediction however other advanced machine learning approaches can be used such as Boosting, Random Forest, Recurrent Neural Network, etc to attain better prediction accuracy.
+
+* The data we have is the day-wise values of different attributes of cryptocurrency from 2013 till the end of 2019, if we can extract more granular data such as hourwise or minute-wise values then it will tremendously help in predicting the future price of cryptocurrency accurately.
+
+
+## 9. Bibliography :
+
+Dutta, Aniruddha & Kumar, Saket & Basu, Meheli. (2019). A Gated Recurrent Unit Approach to Bitcoin Price Prediction.
+McNally, S., Roche, J. and Caton, S. (2018). Predicting the Price of Bitcoin Using Machine Learning. 2018 26th Euromicro International Conference on Parallel, Distributed and Network-based Processing (PDP). 
+
+kaggle.com. (n.d.). Complete Historical Cryptocurrency Financial Data. [online] Available at: https://www.kaggle.com/philmohun/cryptocurrency-financial-data [Accessed 10 May 2020].
+
+Pintelas, Emmanuel & Livieris, Ioannis & Stavroyiannis, Stavros & Kotsilieris, Theodore & Pintelas, P.. (2020). Fundamental Research Questions and Proposals on Predicting Cryptocurrency Prices using DNNs.
+
